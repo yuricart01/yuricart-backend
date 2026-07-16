@@ -8,7 +8,7 @@ const {
 } = require("../../controllers/productController");
 const { authenticate, requireAdmin } = require("../../middleware/auth");
 const { validateParams, validateQuery } = require("../../middleware/validate");
-const { uploadProductImages, handleUploadError } = require("../../middleware/upload");
+const { uploadProductImages, validateProductMediaFileSizes, handleUploadError } = require("../../middleware/upload");
 const { idParamSchema } = require("../../validators/common");
 const { adminProductQuerySchema } = require("../../validators/productValidator");
 
@@ -22,6 +22,7 @@ router.post(
   "/",
   uploadProductImages,
   handleUploadError,
+  validateProductMediaFileSizes,
   createAdminProduct,
 );
 router.patch(
@@ -29,6 +30,7 @@ router.patch(
   validateParams(idParamSchema),
   uploadProductImages,
   handleUploadError,
+  validateProductMediaFileSizes,
   updateAdminProduct,
 );
 router.delete("/:id", validateParams(idParamSchema), deleteAdminProduct);

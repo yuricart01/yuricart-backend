@@ -16,6 +16,17 @@ const productImagesSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const productVideoSchema = new mongoose.Schema(
+  {
+    url: { type: String, default: "" },
+    publicId: { type: String, trim: true },
+    duration: { type: Number, min: 0 },
+    format: { type: String, trim: true },
+    thumbnailUrl: { type: String, default: "" },
+  },
+  { _id: false },
+);
+
 const productVariantSchema = new mongoose.Schema(
   {
     sku: { type: String, trim: true },
@@ -63,6 +74,10 @@ const productSchema = new mongoose.Schema(
       type: productImagesSchema,
       default: () => ({ primary: { url: "" }, gallery: [] }),
       set: normalizeImages,
+    },
+    video: {
+      type: productVideoSchema,
+      default: () => ({ url: "" }),
     },
     tags: { type: [String], default: [] },
     colors: { type: [String], default: [] },

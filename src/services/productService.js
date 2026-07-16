@@ -6,7 +6,7 @@ const { NotFoundError } = require("../utils/ApiError");
 const { buildPaginationMeta, getPagination } = require("../utils/pagination");
 const { parseBoolean, parseSort } = require("../utils/query");
 const { ensureUniqueSlug } = require("../utils/slug");
-const { uploadBuffer, deleteFromCloudinary, deleteMultipleFromCloudinary, PRODUCT_IMAGE_FOLDER, GALLERY_IMAGE_FOLDER } = require("./uploadService");
+const { uploadBuffer, uploadVideoBuffer, deleteFromCloudinary, deleteMultipleFromCloudinary, PRODUCT_IMAGE_FOLDER, GALLERY_IMAGE_FOLDER, PRODUCT_VIDEO_FOLDER } = require("./uploadService");
 
 const productPopulate = [
   { path: "category", select: "name slug image status" },
@@ -108,6 +108,26 @@ async function uploadProductImages(files, existingImages) {
   return images;
 }
 
+async function resolveProductVideo(files, existingVideo, removeVideo = false) {
+  if (removeVideo && !files?.productVideo?.[0]) {
+    if (existingVideo?.publicId) {
+      await deleteFromCloudinary(existingVideo.publicId, "video");
+    }
+    return { url: "" };
+  }
+
+  if (files?.productVideo?.[0]) {
+    if (existingVideo?.publicId) {
+      await deleteFromCloudinary(existingVideo.publicId, "video");
+    }
+    return uploadVideoBuffer(files.productVideo[0].buffer, PRODUCT_VIDEO_FOLDER);
+  }
+
+  return existingVideo?.url
+    ? existingVideo
+    : { url: "" };
+}
+
 async function listPublicProducts(query) {
   const { page, limit, skip } = getPagination(query);
   const filter = await buildProductFilter(query, { publicOnly: true });
@@ -171,6 +191,7 @@ async function createProduct(input, files) {
     : await ensureUniqueSlug(Product, input.title);
 
   const images = await uploadProductImages(files);
+  const video = await resolveProductVideo(files, null, false);
 
   const product = await Product.create({
     title: input.title,
@@ -184,6 +205,7 @@ async function createProduct(input, files) {
     category: input.category || undefined,
     brand: input.brand || undefined,
     images,
+    video,
     tags: input.tags,
     colors: input.colors,
     sizes: input.sizes,
@@ -199,7 +221,7 @@ async function createProduct(input, files) {
   return Product.findById(product._id).populate(productPopulate).lean();
 }
 
-async function updateProduct(id, input, files, removedGalleryPublicIds = []) {
+async function updateProduct(id, input, files, removedGalleryPublicIds = [], removeVideo = false) {
   const existing = await Product.findById(id);
   if (!existing) throw new NotFoundError("Product not found");
 
@@ -240,6 +262,12 @@ async function updateProduct(id, input, files, removedGalleryPublicIds = []) {
     images.gallery = [...images.gallery, ...uploaded];
   }
 
+  const video = await resolveProductVideo(
+    files,
+    existing.video,
+    removeVideo,
+  );
+
   const updateData = {};
   const fields = [
     "title", "description", "shortDescription", "price", "salePrice",
@@ -256,6 +284,7 @@ async function updateProduct(id, input, files, removedGalleryPublicIds = []) {
     ...updateData,
     ...(slug ? { slug } : {}),
     images,
+    video,
     category: input.category === null ? undefined : input.category ?? existing.category,
     brand: input.brand === null ? undefined : input.brand ?? existing.brand,
   });
@@ -282,6 +311,10 @@ async function deleteProduct(id) {
 
   if (publicIds.length > 0) {
     await deleteMultipleFromCloudinary(publicIds);
+  }
+
+  if (product.video?.publicId) {
+    await deleteFromCloudinary(product.video.publicId, "video");
   }
 
   await Product.findByIdAndDelete(id);

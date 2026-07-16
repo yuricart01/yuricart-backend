@@ -19,7 +19,13 @@ const NUMERIC_FIELDS = new Set(["price", "salePrice", "stock"]);
 function normalizeFormBody(body) {
   const result = {};
   for (const [key, value] of Object.entries(body)) {
-    if (key === "keepGallery" || key === "removedGalleryIds") continue;
+    if (
+      key === "keepGallery" ||
+      key === "removedGalleryIds" ||
+      key === "removeVideo"
+    ) {
+      continue;
+    }
     if (ARRAY_FIELDS.has(key)) {
       result[key] = Array.isArray(value) ? value : value ? [value] : [];
     } else if (BOOLEAN_FIELDS.has(key)) {
@@ -92,11 +98,17 @@ const updateAdminProduct = asyncHandler(async (req, res) => {
     }
   }
 
+  const removeVideo =
+    req.body.removeVideo === "true" ||
+    req.body.removeVideo === true ||
+    req.body.removeVideo === "1";
+
   const product = await updateProduct(
     req.params.id,
     body,
     files,
     removedGalleryIds,
+    removeVideo,
   );
   sendSuccess(res, product);
 });
