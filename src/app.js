@@ -14,7 +14,12 @@ function createApp() {
 
   app.set("trust proxy", 1);
 
-  app.use(helmet());
+  app.use(
+    helmet({
+      // Required for browser fetch from a different origin (yuricart.com → api)
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+    }),
+  );
   app.use(
     cors({
       origin: env.FRONTEND_URL,

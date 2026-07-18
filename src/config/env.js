@@ -15,7 +15,12 @@ const envSchema = z.object({
   FRONTEND_URL: z
     .string()
     .default("http://localhost:3000")
-    .transform((value) => value.split(",").map((url) => url.trim()))
+    .transform((value) =>
+      value
+        .split(",")
+        .map((url) => url.trim().replace(/\/+$/, ""))
+        .filter(Boolean),
+    )
     .pipe(z.array(z.string().url()).min(1)),
   ADMIN_EMAIL: z.string().email().optional(),
   ADMIN_PASSWORD: z.string().min(8).optional(),
