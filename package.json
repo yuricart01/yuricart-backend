@@ -8,6 +8,7 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "seed:admin": "node scripts/seedAdmin.js",
+    "seed:catalog": "node scripts/seedCatalog.js",
     "import:wix": "node scripts/import-wix-products.js"
   },
   "dependencies": {

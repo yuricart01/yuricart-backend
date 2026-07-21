@@ -112,6 +112,7 @@ const PRODUCT_VIDEO_FOLDER = "yuricart/products/videos";
 const CATEGORY_IMAGE_FOLDER = "yuricart/categories";
 const BRAND_IMAGE_FOLDER = "yuricart/brands";
 const BANNER_IMAGE_FOLDER = "yuricart/banners";
+const HOMEPAGE_IMAGE_FOLDER = "yuricart/homepage";
 
 module.exports = {
   uploadBuffer,
@@ -124,4 +125,5 @@ module.exports = {
   CATEGORY_IMAGE_FOLDER,
   BRAND_IMAGE_FOLDER,
   BANNER_IMAGE_FOLDER,
+  HOMEPAGE_IMAGE_FOLDER,
 };

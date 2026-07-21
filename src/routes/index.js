@@ -15,6 +15,8 @@ const { validateBody } = require("../middleware/validate");
 
 const adminBannersRoutes = require("./admin/banners.routes");
 
+const adminHomepageRoutes = require("./admin/homepage.routes");
+
 const adminBrandsRoutes = require("./admin/brands.routes");
 
 const adminCategoriesRoutes = require("./admin/categories.routes");
@@ -36,6 +38,8 @@ const adminShippingRoutes = require("./admin/shipping.routes");
 const publicAuthRoutes = require("./public/auth.routes");
 
 const publicBannersRoutes = require("./public/banners.routes");
+
+const publicHomepageRoutes = require("./public/homepage.routes");
 
 const publicBrandsRoutes = require("./public/brands.routes");
 
@@ -82,6 +86,8 @@ router.use("/brands", publicBrandsRoutes);
 
 router.use("/banners", publicBannersRoutes);
 
+router.use("/homepage", publicHomepageRoutes);
+
 router.use("/admin/dashboard", adminDashboardRoutes);
 
 router.use("/admin/products", adminProductsRoutes);
@@ -91,6 +97,8 @@ router.use("/admin/categories", adminCategoriesRoutes);
 router.use("/admin/brands", adminBrandsRoutes);
 
 router.use("/admin/banners", adminBannersRoutes);
+
+router.use("/admin/homepage", adminHomepageRoutes);
 
 router.use("/admin/orders", adminOrdersRoutes);
 
