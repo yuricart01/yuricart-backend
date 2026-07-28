@@ -13,6 +13,14 @@ const {
 } = require("./uploadService");
 const { FIXED_SLOTS, FIXED_SECTIONS } = require("../validators/homepageValidator");
 
+const SMALL_GRID_SLOTS = new Set(["left1", "left2", "left3", "left4"]);
+
+function homepageImagePreset(slot) {
+  if (SMALL_GRID_SLOTS.has(slot)) return "homepageSmall";
+  if (slot === "right") return "homepageLarge";
+  return "homepage";
+}
+
 const DEFAULT_FEATURED_SECTIONS = [
   {
     id: "mobiles",
@@ -289,7 +297,7 @@ async function getAdminHomepage() {
 async function createHeroSlide(input, file) {
   let image = { url: "" };
   if (file) {
-    image = await uploadBuffer(file.buffer, HOMEPAGE_IMAGE_FOLDER);
+    image = await uploadBuffer(file.buffer, HOMEPAGE_IMAGE_FOLDER, "homepage");
   }
 
   const maxOrder = await HomepageBanner.findOne({ section: "hero" })
@@ -324,7 +332,11 @@ async function updateHeroSlide(id, input, file) {
     if (existing.image?.publicId) {
       await deleteFromCloudinary(existing.image.publicId);
     }
-    existing.image = await uploadBuffer(file.buffer, HOMEPAGE_IMAGE_FOLDER);
+    existing.image = await uploadBuffer(
+      file.buffer,
+      HOMEPAGE_IMAGE_FOLDER,
+      "homepage",
+    );
   }
 
   if (input.link !== undefined) existing.link = input.link;
@@ -386,7 +398,11 @@ async function upsertFixedSlot(section, slot, input, file) {
     if (existing.image?.publicId) {
       await deleteFromCloudinary(existing.image.publicId);
     }
-    existing.image = await uploadBuffer(file.buffer, HOMEPAGE_IMAGE_FOLDER);
+    existing.image = await uploadBuffer(
+      file.buffer,
+      HOMEPAGE_IMAGE_FOLDER,
+      homepageImagePreset(slot),
+    );
   }
 
   if (input.link !== undefined) existing.link = input.link;

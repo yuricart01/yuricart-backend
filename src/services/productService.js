@@ -94,13 +94,19 @@ async function uploadProductImages(files, existingImages) {
     if (existingImages?.primary?.publicId) {
       await deleteFromCloudinary(existingImages.primary.publicId);
     }
-    const result = await uploadBuffer(files.primaryImage[0].buffer, PRODUCT_IMAGE_FOLDER);
+    const result = await uploadBuffer(
+      files.primaryImage[0].buffer,
+      PRODUCT_IMAGE_FOLDER,
+      "product",
+    );
     images.primary = result;
   }
 
   if (files?.galleryImages?.length) {
     const uploaded = await Promise.all(
-      files.galleryImages.map((file) => uploadBuffer(file.buffer, GALLERY_IMAGE_FOLDER)),
+      files.galleryImages.map((file) =>
+        uploadBuffer(file.buffer, GALLERY_IMAGE_FOLDER, "gallery"),
+      ),
     );
     images.gallery = [...images.gallery, ...uploaded];
   }
@@ -251,13 +257,19 @@ async function updateProduct(id, input, files, removedGalleryPublicIds = [], rem
     if (existingImages?.primary?.publicId) {
       await deleteFromCloudinary(existingImages.primary.publicId);
     }
-    const result = await uploadBuffer(files.primaryImage[0].buffer, PRODUCT_IMAGE_FOLDER);
+    const result = await uploadBuffer(
+      files.primaryImage[0].buffer,
+      PRODUCT_IMAGE_FOLDER,
+      "product",
+    );
     images.primary = result;
   }
 
   if (files?.galleryImages?.length) {
     const uploaded = await Promise.all(
-      files.galleryImages.map((file) => uploadBuffer(file.buffer, GALLERY_IMAGE_FOLDER)),
+      files.galleryImages.map((file) =>
+        uploadBuffer(file.buffer, GALLERY_IMAGE_FOLDER, "gallery"),
+      ),
     );
     images.gallery = [...images.gallery, ...uploaded];
   }

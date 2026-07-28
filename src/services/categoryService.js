@@ -66,7 +66,7 @@ async function createCategory(input, file) {
 
   let image = { url: "" };
   if (file) {
-    image = await uploadBuffer(file.buffer, CATEGORY_IMAGE_FOLDER);
+    image = await uploadBuffer(file.buffer, CATEGORY_IMAGE_FOLDER, "category");
   } else if (input.image) {
     image = typeof input.image === "string" ? { url: input.image } : input.image;
   }
@@ -94,7 +94,7 @@ async function updateCategory(id, input, file) {
     if (currentPublicId) {
       await deleteFromCloudinary(currentPublicId);
     }
-    image = await uploadBuffer(file.buffer, CATEGORY_IMAGE_FOLDER);
+    image = await uploadBuffer(file.buffer, CATEGORY_IMAGE_FOLDER, "category");
   } else if (input.image === "") {
     if (currentPublicId) {
       await deleteFromCloudinary(currentPublicId);

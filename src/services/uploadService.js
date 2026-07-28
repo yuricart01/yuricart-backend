@@ -3,10 +3,77 @@ const streamifier = require("streamifier");
 const { BadRequestError } = require("../utils/ApiError");
 const { MAX_VIDEO_DURATION_SECONDS } = require("../config/mediaLimits");
 
-function uploadBuffer(buffer, folder) {
+/**
+ * Cloudinary upload presets: resize/crop for the layout slot, then let
+ * Cloudinary pick quality/format (typically WebP).
+ *
+ * homepageSmall matches the designed small-banner canvas: 1080×720 (3:2).
+ * homepageLarge uses a narrower max width so the big slot can give space
+ * to the 2×2 small grid.
+ */
+const IMAGE_UPLOAD_PRESETS = {
+  default: { width: 1600, crop: "limit", quality: "auto:good", fetch_format: "auto" },
+  homepage: { width: 1920, crop: "limit", quality: "auto:good", fetch_format: "auto" },
+  homepageSmall: {
+    width: 1080,
+    height: 720,
+    crop: "fill",
+    gravity: "auto",
+    quality: "auto:good",
+    fetch_format: "auto",
+  },
+  homepageLarge: {
+    width: 1000,
+    crop: "limit",
+    quality: "auto:good",
+    fetch_format: "auto",
+  },
+  banner: { width: 1920, crop: "limit", quality: "auto:good", fetch_format: "auto" },
+  product: { width: 1200, crop: "limit", quality: "auto:good", fetch_format: "auto" },
+  gallery: { width: 1200, crop: "limit", quality: "auto:good", fetch_format: "auto" },
+  category: { width: 800, crop: "limit", quality: "auto:good", fetch_format: "auto" },
+  brand: { width: 600, crop: "limit", quality: "auto:good", fetch_format: "auto" },
+};
+
+function resolveImageUploadOptions(presetOrOptions) {
+  if (!presetOrOptions) {
+    return IMAGE_UPLOAD_PRESETS.default;
+  }
+  if (typeof presetOrOptions === "string") {
+    return (
+      IMAGE_UPLOAD_PRESETS[presetOrOptions] || IMAGE_UPLOAD_PRESETS.default
+    );
+  }
+  return { ...IMAGE_UPLOAD_PRESETS.default, ...presetOrOptions };
+}
+
+function buildImageTransformation(options) {
+  const {
+    width,
+    height,
+    crop = "limit",
+    gravity,
+    quality = "auto:good",
+    fetch_format = "auto",
+  } = options;
+
+  const sizeStep = { width, crop };
+  if (height) sizeStep.height = height;
+  if (gravity) sizeStep.gravity = gravity;
+
+  return [sizeStep, { quality, fetch_format }];
+}
+
+function uploadBuffer(buffer, folder, presetOrOptions = "default") {
+  const options = resolveImageUploadOptions(presetOrOptions);
+
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
-      { folder, resource_type: "image" },
+      {
+        folder,
+        resource_type: "image",
+        transformation: buildImageTransformation(options),
+      },
       (error, result) => {
         if (error) {
           reject(new Error(`Cloudinary upload failed: ${error.message}`));
@@ -119,6 +186,7 @@ module.exports = {
   uploadVideoBuffer,
   deleteFromCloudinary,
   deleteMultipleFromCloudinary,
+  IMAGE_UPLOAD_PRESETS,
   PRODUCT_IMAGE_FOLDER,
   GALLERY_IMAGE_FOLDER,
   PRODUCT_VIDEO_FOLDER,

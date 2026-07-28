@@ -73,7 +73,7 @@ async function createBanner(input, file) {
 
   let image = { url: "" };
   if (file) {
-    image = await uploadBuffer(file.buffer, BANNER_IMAGE_FOLDER);
+    image = await uploadBuffer(file.buffer, BANNER_IMAGE_FOLDER, "banner");
   } else if (input.image) {
     image = typeof input.image === "string" ? { url: input.image } : input.image;
   }
@@ -101,7 +101,7 @@ async function updateBanner(id, input, file) {
     if (currentPublicId) {
       await deleteFromCloudinary(currentPublicId);
     }
-    image = await uploadBuffer(file.buffer, BANNER_IMAGE_FOLDER);
+    image = await uploadBuffer(file.buffer, BANNER_IMAGE_FOLDER, "banner");
   } else if (input.image === "") {
     if (currentPublicId) {
       await deleteFromCloudinary(currentPublicId);

@@ -66,7 +66,7 @@ async function createBrand(input, file) {
 
   let image = { url: "" };
   if (file) {
-    image = await uploadBuffer(file.buffer, BRAND_IMAGE_FOLDER);
+    image = await uploadBuffer(file.buffer, BRAND_IMAGE_FOLDER, "brand");
   } else if (input.image) {
     image = typeof input.image === "string" ? { url: input.image } : input.image;
   } else if (input.logo) {
@@ -96,7 +96,7 @@ async function updateBrand(id, input, file) {
     if (currentPublicId) {
       await deleteFromCloudinary(currentPublicId);
     }
-    image = await uploadBuffer(file.buffer, BRAND_IMAGE_FOLDER);
+    image = await uploadBuffer(file.buffer, BRAND_IMAGE_FOLDER, "brand");
   } else if (input.image === "") {
     if (currentPublicId) {
       await deleteFromCloudinary(currentPublicId);
