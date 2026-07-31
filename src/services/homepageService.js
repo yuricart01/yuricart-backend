@@ -17,7 +17,6 @@ const SMALL_GRID_SLOTS = new Set(["left1", "left2", "left3", "left4"]);
 
 function homepageImagePreset(slot) {
   if (SMALL_GRID_SLOTS.has(slot)) return "homepageSmall";
-  if (slot === "right") return "homepageLarge";
   return "homepage";
 }
 

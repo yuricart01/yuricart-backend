@@ -4,7 +4,7 @@ const { idParamSchema } = require("./common");
 const SECTIONS = ["hero", "promo", "mobiles", "laptops", "smart", "desktop"];
 const FIXED_SECTIONS = ["promo", "mobiles", "laptops", "smart", "desktop"];
 
-const GRID_SLOTS = ["left1", "left2", "left3", "left4", "right"];
+const GRID_SLOTS = ["left1", "left2", "left3", "left4"];
 const PROMO_SLOTS = ["1", "2", "3"];
 
 const FIXED_SLOTS = {

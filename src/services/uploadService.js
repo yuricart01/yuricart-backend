@@ -8,8 +8,6 @@ const { MAX_VIDEO_DURATION_SECONDS } = require("../config/mediaLimits");
  * Cloudinary pick quality/format (typically WebP).
  *
  * homepageSmall matches the designed small-banner canvas: 1080×720 (3:2).
- * homepageLarge uses a narrower max width so the big slot can give space
- * to the 2×2 small grid.
  */
 const IMAGE_UPLOAD_PRESETS = {
   default: { width: 1600, crop: "limit", quality: "auto:good", fetch_format: "auto" },
@@ -19,12 +17,6 @@ const IMAGE_UPLOAD_PRESETS = {
     height: 720,
     crop: "fill",
     gravity: "auto",
-    quality: "auto:good",
-    fetch_format: "auto",
-  },
-  homepageLarge: {
-    width: 1000,
-    crop: "limit",
     quality: "auto:good",
     fetch_format: "auto",
   },
