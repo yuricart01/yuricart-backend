@@ -9,7 +9,8 @@
     "start": "node src/server.js",
     "seed:admin": "node scripts/seedAdmin.js",
     "seed:catalog": "node scripts/seedCatalog.js",
-    "import:wix": "node scripts/import-wix-products.js"
+    "import:wix": "node scripts/import-wix-products.js",
+    "migrate:cloudinary": "node scripts/migrateCloudinaryAccount.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
