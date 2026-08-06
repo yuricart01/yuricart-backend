@@ -4,6 +4,7 @@ const productImageDataSchema = new mongoose.Schema(
   {
     url: { type: String, default: "" },
     publicId: { type: String, trim: true },
+    alt: { type: String, trim: true, default: "" },
   },
   { _id: false },
 );
@@ -47,8 +48,16 @@ function normalizeImages(value) {
     const primary = arr.find((img) => img.isPrimary) || arr[0];
     const gallery = arr.filter((img) => img !== primary && img !== arr[0]);
     return {
-      primary: { url: primary?.url || "", publicId: primary?.publicId },
-      gallery: gallery.map((img) => ({ url: img.url, publicId: img.publicId })),
+      primary: {
+        url: primary?.url || "",
+        publicId: primary?.publicId,
+        alt: primary?.alt || "",
+      },
+      gallery: gallery.map((img) => ({
+        url: img.url,
+        publicId: img.publicId,
+        alt: img.alt || "",
+      })),
     };
   }
   const obj = value;
@@ -64,6 +73,8 @@ const productSchema = new mongoose.Schema(
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     description: { type: String },
     shortDescription: { type: String, trim: true },
+    seoTitle: { type: String, trim: true, maxlength: 70 },
+    metaDescription: { type: String, trim: true, maxlength: 320 },
     price: { type: Number, required: true, min: 0 },
     salePrice: { type: Number, min: 0 },
     sku: { type: String, trim: true, sparse: true, unique: true },

@@ -12,7 +12,11 @@ function normalizeImage(value) {
 }
 
 const imageDataSchema = new mongoose.Schema(
-  { url: { type: String, default: "" }, publicId: { type: String, trim: true } },
+  {
+    url: { type: String, default: "" },
+    publicId: { type: String, trim: true },
+    alt: { type: String, trim: true, default: "" },
+  },
   { _id: false },
 );
 
@@ -22,6 +26,8 @@ const categorySchema = new mongoose.Schema(
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     image: { type: imageDataSchema, default: () => ({}), set: normalizeImage },
     description: { type: String, trim: true },
+    seoTitle: { type: String, trim: true, maxlength: 70 },
+    metaDescription: { type: String, trim: true, maxlength: 320 },
     status: {
       type: String,
       enum: ["active", "inactive"],

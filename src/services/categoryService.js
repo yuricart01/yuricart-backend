@@ -71,7 +71,12 @@ async function createCategory(input, file) {
     image = typeof input.image === "string" ? { url: input.image } : input.image;
   }
 
-  return Category.create({ ...input, slug, image });
+  if (typeof input.imageAlt === "string") {
+    image = { ...image, alt: input.imageAlt.trim() };
+  }
+
+  const { imageAlt: _imageAlt, ...rest } = input;
+  return Category.create({ ...rest, slug, image });
 }
 
 async function updateCategory(id, input, file) {
@@ -94,18 +99,25 @@ async function updateCategory(id, input, file) {
     if (currentPublicId) {
       await deleteFromCloudinary(currentPublicId);
     }
-    image = await uploadBuffer(file.buffer, CATEGORY_IMAGE_FOLDER, "category");
+    image = {
+      ...(await uploadBuffer(file.buffer, CATEGORY_IMAGE_FOLDER, "category")),
+      alt: rawImage?.alt || "",
+    };
   } else if (input.image === "") {
     if (currentPublicId) {
       await deleteFromCloudinary(currentPublicId);
     }
     image = { url: "" };
   } else if (input.image && typeof input.image === "string") {
-    image = { url: input.image };
+    image = { url: input.image, alt: rawImage?.alt || "" };
+  }
+
+  if (typeof input.imageAlt === "string") {
+    image = { ...image, alt: input.imageAlt.trim() };
   }
 
   const updateData = {};
-  const fields = ["name", "description", "status", "sortOrder"];
+  const fields = ["name", "description", "seoTitle", "metaDescription", "status", "sortOrder"];
   for (const field of fields) {
     if (field in input) {
       updateData[field] = input[field];

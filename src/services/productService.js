@@ -99,7 +99,10 @@ async function uploadProductImages(files, existingImages) {
       PRODUCT_IMAGE_FOLDER,
       "product",
     );
-    images.primary = result;
+    images.primary = {
+      ...result,
+      alt: existingImages?.primary?.alt || "",
+    };
   }
 
   if (files?.galleryImages?.length) {
@@ -108,10 +111,74 @@ async function uploadProductImages(files, existingImages) {
         uploadBuffer(file.buffer, GALLERY_IMAGE_FOLDER, "gallery"),
       ),
     );
-    images.gallery = [...images.gallery, ...uploaded];
+    images.gallery = [
+      ...images.gallery,
+      ...uploaded.map((img) => ({ ...img, alt: "" })),
+    ];
   }
 
   return images;
+}
+
+function parseGalleryAlts(raw) {
+  if (!raw) return {};
+  if (typeof raw === "object" && !Array.isArray(raw)) return raw;
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return parsed;
+      }
+    } catch {
+      return {};
+    }
+  }
+  return {};
+}
+
+function parseNewGalleryAlts(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw.map((v) => String(v || ""));
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed.map((v) => String(v || ""));
+    } catch {
+      return raw ? [raw] : [];
+    }
+  }
+  return [];
+}
+
+function applyImageAlts(images, input, newlyUploadedCount = 0) {
+  const next = {
+    primary: { ...(images.primary || { url: "" }) },
+    gallery: (images.gallery || []).map((img) => ({ ...img })),
+  };
+
+  if (typeof input.primaryImageAlt === "string") {
+    next.primary.alt = input.primaryImageAlt.trim();
+  }
+
+  const galleryAlts = parseGalleryAlts(input.galleryAlts);
+  for (const img of next.gallery) {
+    if (img.publicId && Object.prototype.hasOwnProperty.call(galleryAlts, img.publicId)) {
+      img.alt = String(galleryAlts[img.publicId] || "").trim();
+    }
+  }
+
+  const newAlts = parseNewGalleryAlts(input.newGalleryAlts);
+  if (newlyUploadedCount > 0 && newAlts.length > 0) {
+    const start = next.gallery.length - newlyUploadedCount;
+    for (let i = 0; i < newlyUploadedCount; i += 1) {
+      const idx = start + i;
+      if (idx >= 0 && idx < next.gallery.length && newAlts[i] !== undefined) {
+        next.gallery[idx].alt = String(newAlts[i] || "").trim();
+      }
+    }
+  }
+
+  return next;
 }
 
 async function resolveProductVideo(files, existingVideo, removeVideo = false) {
@@ -196,7 +263,9 @@ async function createProduct(input, files) {
     ? await ensureUniqueSlug(Product, input.slug)
     : await ensureUniqueSlug(Product, input.title);
 
-  const images = await uploadProductImages(files);
+  let images = await uploadProductImages(files);
+  const newGalleryCount = files?.galleryImages?.length || 0;
+  images = applyImageAlts(images, input, newGalleryCount);
   const video = await resolveProductVideo(files, null, false);
 
   const product = await Product.create({
@@ -204,6 +273,8 @@ async function createProduct(input, files) {
     slug,
     description: input.description,
     shortDescription: input.shortDescription,
+    seoTitle: input.seoTitle,
+    metaDescription: input.metaDescription,
     price: input.price,
     salePrice: input.salePrice,
     sku: input.sku,
@@ -262,17 +333,26 @@ async function updateProduct(id, input, files, removedGalleryPublicIds = [], rem
       PRODUCT_IMAGE_FOLDER,
       "product",
     );
-    images.primary = result;
+    images.primary = {
+      ...result,
+      alt: existingImages?.primary?.alt || "",
+    };
   }
 
-  if (files?.galleryImages?.length) {
+  const newGalleryCount = files?.galleryImages?.length || 0;
+  if (newGalleryCount > 0) {
     const uploaded = await Promise.all(
       files.galleryImages.map((file) =>
         uploadBuffer(file.buffer, GALLERY_IMAGE_FOLDER, "gallery"),
       ),
     );
-    images.gallery = [...images.gallery, ...uploaded];
+    images.gallery = [
+      ...images.gallery,
+      ...uploaded.map((img) => ({ ...img, alt: "" })),
+    ];
   }
+
+  const imagesWithAlts = applyImageAlts(images, input, newGalleryCount);
 
   const video = await resolveProductVideo(
     files,
@@ -282,8 +362,8 @@ async function updateProduct(id, input, files, removedGalleryPublicIds = [], rem
 
   const updateData = {};
   const fields = [
-    "title", "description", "shortDescription", "price", "salePrice",
-    "sku", "stock", "tags", "colors", "sizes", "variants",
+    "title", "description", "shortDescription", "seoTitle", "metaDescription",
+    "price", "salePrice", "sku", "stock", "tags", "colors", "sizes", "variants",
     "status", "featured", "newArrival", "bestSeller", "ribbon", "currency",
   ];
   for (const field of fields) {
@@ -295,7 +375,7 @@ async function updateProduct(id, input, files, removedGalleryPublicIds = [], rem
   Object.assign(existing, {
     ...updateData,
     ...(slug ? { slug } : {}),
-    images,
+    images: imagesWithAlts,
     video,
     category: input.category === null ? undefined : input.category ?? existing.category,
     brand: input.brand === null ? undefined : input.brand ?? existing.brand,
